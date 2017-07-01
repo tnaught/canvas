@@ -16,3 +16,5 @@
 + [加速运动](demos/3-2.html)
 + [地球公转](demos/3-3.html)
 + [时钟](demos/3-4.html)
+
+[附PPT](https://docs.google.com/presentation/d/1rCRAbjiLRNALf_mdkF9GPqAHEA4g6QWMaqgutCvQqkg/pub?start=false&loop=false&delayms=3000)
