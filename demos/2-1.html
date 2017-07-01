@@ -2,75 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>sun</title>
+  <title>图像处理</title>
 </head>
 <body>
-  <canvas id="canvas" width=300 height=300 style="display: block;border: 1px solid #a75601;margin: 100px auto;"></canvas>
-
+  <canvas id="canvas"></canvas>
   <script type="text/javascript">
-    var degree = 2 * Math.PI / 360
-    var requestAnimationFrame = window.requestAnimationFrame
+    //ctx.drawImage(image, 0, 0)
+    //canvas.toDataURL('image/png')
+    //ctx.getImageData(0, 0, width, height)
+    //ctx.putImageData(imageData, 0, 0)
     var canvas = document.getElementById('canvas')
     var ctx = canvas.getContext('2d')
-    var stop = false
-    var images = {}
+    var img = new Image
+    img.src = 'girl.png'
+    img.onload = function() {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
+      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      gray(imageData)
+      ctx.putImageData(imageData, 0, 0)
+    }
 
-    function init() {
-      var loaded = 0, count = 3
+    function gray(imageData) {
+      var data = imageData.data
+      var length = data.length
+      for(var i = 0; i < length; i += 4) {
+        var r = data[i]
+        var g = data[i+1]
+        var b = data[i+2]
+        var gray = (r + g + b)/3
+        data[i] = data[i+1] = data[i+2] = gray 
+      }
+    }
 
-      ;['sun', 'earth', 'moon'].forEach(function(item) {
-        var image = new Image()
-        images[item] = image
-        image.onload = handleImageLoad
-        image.src = item + '.png'
-      })
-      
-      function handleImageLoad () {
-        loaded++
+    function sepia(imageData) {
+      var data = imageData.data
+      var length = data.length
+      for(var i = 0; i < length; i += 4) {
+        var r = data[i]
+        var g = data[i+1]
+        var b = data[i+2]
+        var gray = (r + g + b)/2
+        data[i] = (r * 0.393)+(g * 0.769)+(b * 0.189)
+        data[i+1] = (r * 0.349)+(g * 0.686)+(b * 0.168)
+        data[i+2] = (r * 0.272)+(g * 0.534)+(b * 0.131)
+      }
+    }
 
-        if (loaded === 3) {
-          requestAnimationFrame(draw)    
+    function red(imageData) {
+      var data = imageData.data
+      var length = data.length
+      for(var i = 0; i < length; i += 4) {
+        var r = data[i]
+        var g = data[i+1]
+        var b = data[i+2]
+        data[i] = (r+g+b)/2
+        data[i+1] = 0
+        data[i+2] = 0
+      }
+    }
+
+    function brighten(imageData) {
+      delta = 255
+      var data = imageData.data
+      var length = data.length
+      for(var i = 0; i < length; i += 4) {
+        var r = data[i]
+        var g = data[i+1]
+        var b = data[i+2]
+        if (r == 255 && g === 255 && b === 255) {
+          continue;
         }
+        data[i] = -r+delta
+        data[i+1] = -g+delta
+        data[i+2] = -b+delta
       }
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      ctx.globalCompositeOperation = 'destination-over'
-      ctx.fillStyle = 'rgba(0, 0, 0, .4)'
-      ctx.strokeStyle = 'rgba(0, 153, 255, .4)'
-      ctx.save()
-      
-      var time = new Date(), sec = time.getSeconds(), miniSec = time.getMilliseconds()
-      
-      //draw earth
-      ctx.translate(150, 150)
-      ctx.rotate(degree * 6 * sec + degree * 0.006 * miniSec)
-      ctx.translate(105, 0)
-      ctx.fillRect(0,-12,50,24)
-      ctx.drawImage(images.earth, -12, -12)
-
-      ctx.rotate(degree * 60 * sec + degree * 0.06 * miniSec)
-      ctx.translate(0, 28.5)
-      ctx.drawImage(images.moon, -3.5, -3.5)
-
-      
-      ctx.restore()
-
-      ctx.beginPath()
-      ctx.arc(150, 150, 105, 0, Math.PI * 2, false)
-      ctx.stroke()
-      //draw moon
-
-      //draw sun
-      ctx.drawImage(images.sun, 0, 0)
-
-      if (!stop) {
-        requestAnimationFrame(draw)
-      }
-    }
-    init()
   </script>
 </body>
 </html>

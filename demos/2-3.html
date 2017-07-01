@@ -2,67 +2,203 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>loading</title>
+  <title>裁剪图片</title>
+  <style type="text/css">
+    *{margin: 0;border: 0;padding: 0;box-sizing: border-box;}
+    .container {width: 640px; margin: 100px auto;background: hsl(290, 52%, 25%);padding: 50px;}
+    .upload-wrap {
+      display: inline-block;
+      position: relative; 
+      background: hsl(212, 85%, 40%);
+      padding: 10px 24px;
+      border-radius: 5px;
+      text-align: center;
+      color: #fff;
+      cursor: pointer;
+    }
+    .upload-wrap input {
+      left: 0;
+      top: 0;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      opacity: 0;
+      z-index: 1;
+    }
+    .img-wrap {
+      position: relative;
+      box-sizing: content-box;
+      margin-top: 30px;
+      height: 540px;
+      border: 2px solid #e4e4e4;
+    }
+    canvas {position: absolute;display: block;}
+    .result-canvas {display: none;}
+    .result-wrap {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      margin-top: 50px;
+    }
+    .result-wrap span {
+      flex: 0 0 120px;
+      height: 120px;
+      border: 1px solid #e4e4e4;
+    }
+    .hide {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <canvas id="canvas" width="500" height="500">
-    <p>你的浏览器不支持canvas</p>
-  </canvas>
+  <div class="container">
+    <label for="" class="upload-wrap">
+      <input type="file" id="fileInput">
+      <span>上传文件</span>
+    </label>
+    
+    <div class="img-wrap" id="originWrap">
+      <canvas id="originPic"></canvas>
+      <canvas id="maskPic"></canvas>
+      <canvas id="resultPic" class="result-canvas hide"></canvas>
+    </div>
+
+    <div class="result-wrap">
+      <span id="editShow" class="result-wrap__edit"></span>
+      <span id="resultShow" class="result-wrap_result"></span>
+    </div>
+  </div>
 
   <script type="text/javascript">
-    window.onload = function() {
-      var canvas = document.getElementById('canvas'),
-          context = canvas.getContext('2d'),
-          centerX = canvas.width/2,
-          centerY = canvas.height/2,
-          rad = Math.PI * 2 / 100;
-          speed = 0.1;
+      var nodes = {}
+      ;['fileInput', 'originWrap', 'originPic', 'resultPic', 'maskPic', 'editShow', 'resultShow'].forEach(function(id) {
+        nodes[id] = document.getElementById(id)
+      })
+      var originCtx = nodes['originPic'].getContext('2d')
+      var maskCtx = nodes['maskPic'].getContext('2d')
 
-      function bludCircle(n) {
-        context.save();
-        context.beginPath();
-        context.strokeStyle = "#49f";
-        context.lineWidth = 12;
-        context.arc(centerX, centerY, 100, -Math.PI/2, -Math.PI/2 + n*rad, false);
-        context.stroke();
-        context.restore();
-      }
+      var cWidth, cHeight, rWidth = 120, rHeight = 120, rx = 100, ry = 200;
 
-      function whiteCircle() {
-        context.save();
-        context.beginPath();
-        context.strokeStyle = '#A5DEF1';
-        context.lineWidth = 12;
-        context.arc(centerX, centerY, 100, 0, Math.PI * 2, false);
-        context.stroke();
-        context.closePath();
-        context.restore();
-      }
+      nodes['fileInput'].addEventListener('change', function() {
+        var file = this.files[0]
+        var fr = new FileReader()
+        fr.onload = function(evt) {
+          var imgData = evt.target.result;
+          var img = new Image()
+          img.onload = function() {
+            paintImage(img)
+          }
+          img.src = imgData
+        }
+        fr.readAsDataURL(file)
+      }, false)
 
-      function text(n) {
-        context.save();
-        context.fillStyle = '#F47C7C';
-        context.font = '40px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(n.toFixed(0) + '%', centerX, centerY);
-        context.restore();
-      }
+      var dragging = false, startX, startY, lastRx, lastRy;
+      
+      nodes['maskPic'].onmousemove = throttle(function(e) {
+        var pageX = e.pageX - nodes['originWrap'].getBoundingClientRect().left - document.body.scrollLeft - (parseInt(this.style.left)|0)
+        var pageY = e.pageY - nodes['originWrap'].getBoundingClientRect().top - document.body.scrollTop - (parseInt(this.style.top)|0)
 
-      (function drawFrame() {
-        if (speed < 100) {
-          window.requestAnimationFrame(drawFrame, canvas);
+        if (pageX > rx && pageX < rx + rWidth && pageY > ry && pageY < ry + rHeight) {
+          this.style.cursor = 'move'
+
+          if (dragging) {
+            rx = lastRx + pageX - startX
+            ry = lastRy + pageY - startY
+
+            rx = Math.max(0, rx)
+            rx = Math.min(rx, cWidth - rWidth)
+            ry = Math.max(0, ry)
+            ry = Math.min(ry, cHeight - rHeight)
+
+            cutImage()
+          }
+        }
+        else {
+          this.style.cursor = 'auto'
         }
 
-        context.clearRect(0, 0, canvas.width, canvas.height);
+      }, 10, 50)
 
-        whiteCircle();
-        text(speed);
-        bludCircle(speed);
+      nodes['maskPic'].onmousedown = function(e) {
+        dragging = true
+        lastRx = rx
+        lastRy = ry
+        startX = e.pageX - nodes['originWrap'].getBoundingClientRect().left - document.body.scrollLeft - parseInt(this.style.left)
+        startY = e.pageY - nodes['originWrap'].getBoundingClientRect().top - document.body.scrollTop - parseInt(this.style.top)
+      }
 
-        speed += 0.1;
-      }())
-    }
+      nodes['maskPic'].onmouseup = function() {
+        dragging = false
+      }
+
+      function throttle(fn, delay, atleast) {
+        var previous, timer
+
+        return function() {
+          var _this = this
+          var args = Array.prototype.slice.call(arguments, 0)
+
+          var now = +new Date()
+          if (!previous) previous = now
+          if (now - previous > atleast) {
+            fn.apply(_this, args)
+            previous = now
+          }
+          else {
+            clearTimeout(timer)
+
+            timer = setTimeout(function() {
+              fn.apply(_this, args)
+            }, delay)
+          }
+        }
+      }
+
+      function paintImage(img) {
+        var realWidth = img.width, realHeight = img.height
+        var sWidth = parseInt(window.getComputedStyle(nodes['originWrap']).width), 
+            sHeight = parseInt(window.getComputedStyle(nodes['originWrap']).height)
+        // if (realWidth < sWidth && realHeight < sHeight) {
+        //   cWidth = realWidth
+        //   cHeight = realHeight
+        // }
+        // else {
+          var rate = realWidth / realHeight
+          if (rate > 1) {
+            cWidth = sWidth
+            cHeight = cWidth / rate
+          }
+          else {
+            cHeight = sHeight
+            cWidth = cHeight * rate
+          }
+        // }
+        nodes['originPic'].width = cWidth
+        nodes['maskPic'].width = cWidth
+        nodes['originPic'].height = cHeight
+        nodes['maskPic'].height = cHeight
+
+        nodes['originPic'].style.left = (sWidth - cWidth) / 2 + 'px'
+        nodes['maskPic'].style.left = (sWidth - cWidth) / 2 + 'px'
+        nodes['originPic'].style.top = (sHeight - cHeight) / 2 + 'px'
+        nodes['maskPic'].style.top = (sHeight - cHeight) / 2 + 'px'
+        originCtx.drawImage(img, 0, 0, cWidth, cHeight)
+
+        cutImage()
+      }
+
+      function cutImage() {
+        maskCtx.save()
+        maskCtx.clearRect(0, 0, cWidth, cHeight)
+        maskCtx.fillStyle = 'rgba(0, 0, 0, .5)'
+        maskCtx.fillRect(0, 0, cWidth, cHeight)
+        maskCtx.clearRect(rx, ry, rWidth, rHeight)
+        maskCtx.restore()
+
+        nodes['editShow'].style.background = 'url('+nodes['originPic'].toDataURL()+') -'+rx+'px -'+ry+'px no-repeat'
+      }
   </script>
 </body>
 </html>
