@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id="canvas" width=1500 height=500></canvas>
+  <script type="text/javascript">
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+    var posX1 = 150, posY1 = 50
+    var posX2 = 10, posY2 = 50
+
+    function draw(posX, posY) {
+      ctx.fillStyle = "#000"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      
+      ctx.beginPath()
+      ctx.arc(posX, posY, 10, 0, 2 * Math.PI, true)
+      ctx.closePath()
+      ctx.fillStyle = '#fff'
+      ctx.fill()
+    }
+
+    // function animate1() {
+    //   if (posY1 > canvas.height - 100) {
+    //     interval && clearInterval(interval)
+    //   }
+    //   draw(posX1, posY1)
+    //   posY1 = posY1 + 10
+    // }
+    // animate1()
+    // var interval = setInterval(animate1, 60)
+    var vy = -10, vx = 10
+    var count = 0
+    function animate2() {
+      count++
+      if (count > 100) {
+        return false
+      }
+
+      posX2 = posX2 + vx
+      posY2 = posY2 + vy
+      draw(posX2, posY2)
+      
+      vy += 1
+      if (posY2 > canvas.height * .75) {
+        posY2 = canvas.height * .75
+        vy *= -.6
+        vx *= .75
+      }
+      requestAnimationFrame(animate2)
+    }
+
+    requestAnimationFrame(animate2)
+  </script>
+</body>
+</html>

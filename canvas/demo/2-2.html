@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>clock</title>
+  <style type="text/css">
+    body {
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width=300 height=300 style="margin: 50px auto;display:block;"></canvas>
+
+  <script type="text/javascript">
+    var requestAnimationFrame = window.requestAnimationFrame
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+    var width = canvas.width, height = canvas.height
+    var stop = false
+    var degree = 2 * Math.PI / 360
+
+    init()
+
+    ;function init() {
+      requestAnimationFrame(draw)
+    }
+
+    function draw() {
+      var time = new Date(), hour = time.getHours(), minute = time.getMinutes(), second = time.getSeconds()
+      hour = hour % 12
+      ctx.clearRect(0, 0, width, height)
+      ctx.save()
+
+      ctx.translate(width/2, height/2)
+      ctx.rotate(-90 * degree)
+      ctx.strokeStyle = '#fff'
+      ctx.lineCap = 'round'
+      ctx.lineWidth = 4
+      ctx.save()
+
+      ctx.fillStyle = '#000'
+      ctx.fillRect(-150, -150, 300, 300)
+      ctx.globalCompositeOperation = 'destination-in'
+      ctx.beginPath()
+      ctx.arc(0, 0, 175, 0, 360 * degree, false)
+      ctx.closePath()
+      ctx.strokeStyle = '#fff'
+      ctx.fillStyle = '#f90'
+      ctx.fill()
+      ctx.restore()
+
+      ctx.save()
+      //draw hour marks
+      ctx.lineWidth = 6
+
+      for(var hm = 0; hm < 12; hm++) {
+        ctx.beginPath()
+        ctx.moveTo(120, 0)
+        ctx.lineTo(115, 0)
+        ctx.stroke()
+        ctx.rotate(30*degree)
+      }
+      ctx.restore()
+      
+      ctx.save()
+      ctx.lineWidth = 2
+      ctx.strokeStyle = 'rgba(255, 255, 255, .4)'
+      //draw minute marks
+      for(var mm = 0; mm < 60; mm++) {
+        if (mm % 5 === 0) {
+          ctx.rotate(6*degree)
+          continue;
+        }
+        ctx.beginPath()
+        ctx.moveTo(120, 0)
+        ctx.lineTo(119, 0)
+        ctx.stroke()
+        ctx.rotate(6*degree)
+      }
+      ctx.restore()
+      //draw hour
+      ctx.save()
+      ctx.beginPath()
+      ctx.rotate(hour * 30 * degree, minute * 30 / 60 * degree, second * 30 / 3600 * degree)
+      ctx.moveTo(-10, 0)
+      ctx.lineTo(68, 0)
+      ctx.lineWidth = 10
+      ctx.strokeStyle = '#fff'
+      ctx.stroke()
+      ctx.restore()
+      //draw minute
+      ctx.save()
+      ctx.beginPath()
+      ctx.rotate(minute * 6 * degree, second * 6 / 60 * degree)
+      ctx.moveTo(-10, 0)
+      ctx.lineTo(105, 0)
+      ctx.strokeStyle = '#fff'
+      ctx.stroke()
+      ctx.restore()
+      //draw second
+      ctx.save()
+      ctx.beginPath()
+      ctx.rotate(second * 6 * degree)
+      ctx.moveTo(-10, 0)
+      ctx.lineTo(115, 0)
+      ctx.lineWidth = 2
+      ctx.strokeStyle = '#ff9900'
+      ctx.stroke()
+      ctx.restore()
+
+      ctx.restore()
+
+      if (!stop) {
+        requestAnimationFrame(draw)
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>sun</title>
+</head>
+<body>
+  <canvas id="canvas" width=300 height=300 style="display: block;border: 1px solid #a75601;margin: 100px auto;"></canvas>
+
+  <script type="text/javascript">
+    var degree = 2 * Math.PI / 360
+    var requestAnimationFrame = window.requestAnimationFrame
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+    var stop = false
+    var images = {}
+
+    function init() {
+      var loaded = 0, count = 3
+
+      ;['sun', 'earth', 'moon'].forEach(function(item) {
+        var image = new Image()
+        images[item] = image
+        image.onload = handleImageLoad
+        image.src = item + '.png'
+      })
+      
+      function handleImageLoad () {
+        loaded++
+
+        if (loaded === 3) {
+          requestAnimationFrame(draw)    
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      ctx.globalCompositeOperation = 'destination-over'
+      ctx.fillStyle = 'rgba(0, 0, 0, .4)'
+      ctx.strokeStyle = 'rgba(0, 153, 255, .4)'
+      ctx.save()
+      
+      var time = new Date(), sec = time.getSeconds(), miniSec = time.getMilliseconds()
+      
+      //draw earth
+      ctx.translate(150, 150)
+      ctx.rotate(degree * 6 * sec + degree * 0.006 * miniSec)
+      ctx.translate(105, 0)
+      ctx.fillRect(0,-12,50,24)
+      ctx.drawImage(images.earth, -12, -12)
+
+      ctx.rotate(degree * 60 * sec + degree * 0.06 * miniSec)
+      ctx.translate(0, 28.5)
+      ctx.drawImage(images.moon, -3.5, -3.5)
+
+      
+      ctx.restore()
+
+      ctx.beginPath()
+      ctx.arc(150, 150, 105, 0, Math.PI * 2, false)
+      ctx.stroke()
+      //draw moon
+
+      //draw sun
+      ctx.drawImage(images.sun, 0, 0)
+
+      if (!stop) {
+        requestAnimationFrame(draw)
+      }
+    }
+    init()
+  </script>
+</body>
+</html>

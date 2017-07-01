@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id="canvas" width=500 height=500 style="border: 1px solid yellow;"></canvas>
+  <script type="text/javascript">
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+    //矩形
+    ctx.fillStyle="#f90"
+    // ctx.fillRect(10, 10, 50, 50)
+    ctx.strokeStyle="black"
+    ctx.lineWidth=10
+    ctx.strokeRect(20, 20, 30, 30)
+    ctx.strokeStyle="#555"
+    ctx.lineWidth=1
+    ctx.strokeRect(20, 20, 30, 30)
+    // ctx.clearRect(30, 30, 10, 10)
+    //文字
+    ctx.font="Bold 30px Arial"
+    // ctx.textAlign="left"
+    ctx.fillStyle="#555"
+    ctx.fillText('amazing', 10, 80)
+    ctx.strokeStyle="#a50"
+    ctx.strokeText('amazing', 10, 120)
+
+    //圆和扇形
+    ctx.arc(50, 200, 30, 0/360*2*Math.PI, 30/360*2*Math.PI, true)
+    // ctx.closePath()
+    ctx.stroke()
+
+    //阴影
+    var linearGradient = ctx.createLinearGradient(50, 300, 90, 300)
+    linearGradient.addColorStop(0, 'red')
+    linearGradient.addColorStop(0.3, 'orange')
+    linearGradient.addColorStop(0.6, 'green')
+    linearGradient.addColorStop(1, 'purple')
+    ctx.fillStyle = linearGradient
+    ctx.fillRect(50, 300, 40, 40)
+
+    //shadow
+    ctx.shadowOffsetX = 5
+    ctx.shadowOffsetY = 0
+    ctx.shadowBlur = 5
+    ctx.shadowColor = "#aa7310"
+    ctx.fillStyle="#f90"
+    ctx.fillRect(50, 360, 40, 40)
+
+    // var img = new Image()
+    // img.src = 'girl.png'
+    // img.onload = function() {
+    //   // canvas.width = img.width
+    //   // canvas.height = img.height
+
+    //   ctx.drawImage(img, 0, 0)
+    // }
+    var img = new Image()
+    img.src = canvas.toDataURL('image/png')
+    document.body.appendChild(img)
+  </script>
+</body>
+</html>
